@@ -26,6 +26,7 @@ async def chat_endpoint(request: ChatRequest):
     return ChatResponse(reply=reply)
 
 # ------------------------ 聊天机器人逻辑 ------------------------
+from langfuse.openai import openai
 from langfuse import observe, get_client, propagate_attributes
 from dotenv import load_dotenv
 import time
@@ -50,7 +51,7 @@ async def chatbot(message: str):
     span.update(output=f"第一个span处理完成: {message}")
     span.end()
 
-    # 创建一个生成span，用于记录生成过程
+    # 创建一个生成span，用于记录生成过程（Python SDK）
     generation = client.start_generation(
                 name="模型生成",
                 model="xx-model",
@@ -69,6 +70,15 @@ async def chatbot(message: str):
     generation.update(output=[{"role": "assistant", "content": reply}])
     generation.end()
 
+    # 创建一个生成span，用于记录生成过程（OpenAI SDK）
+    # completion = openai.chat.completions.create(
+    #     name="模型生成",
+    #     model="xx-model",
+    #     messages=[
+    #         {"role": "system", "content": "你是一个虚拟助手，请根据用户的问题给出回答。"},
+    #         {"role": "user", "content": message}],
+    # )
+    # reply = completion.choices[0].message.content
     # 刷新所有span
     client.flush()
     return reply
