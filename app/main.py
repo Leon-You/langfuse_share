@@ -59,6 +59,7 @@ async def chatbot(message: str):
                     {"role": "system", "content": "你是一个虚拟助手，请根据用户的问题给出回答。"},
                     {"role": "user", "content": message}
                     ],
+                metadata={"tag": "chatbot-调用记录"},
             )
     time.sleep(0.5) # 模拟生成时间
     if "你好" in message:

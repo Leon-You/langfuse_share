@@ -12,9 +12,12 @@ observations = client.api.observations.get_many(
 datasets = []
 
 for d in observations.data:
+    if d.metadata.get("tag") != "chatbot-调用记录":
+        continue
     datasets.append({
         "input": d.input,
         "output": d.output,
+        "metadata": d.metadata,
     })
 
 print(datasets)
