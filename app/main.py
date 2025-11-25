@@ -30,6 +30,8 @@ from langfuse.openai import openai
 from langfuse import observe, get_client, propagate_attributes
 from dotenv import load_dotenv
 import time
+import logging
+logging.basicConfig(level=logging.INFO)
 # 加载langfuse需要的环境变量
 load_dotenv("../.env")
 # 获取Langfuse客户端
@@ -82,4 +84,5 @@ async def chatbot(message: str):
     # reply = completion.choices[0].message.content
     # 刷新所有span
     client.flush()
+    logging.info(f"用户输入: {message}，聊天机器人回复: {reply}")
     return reply

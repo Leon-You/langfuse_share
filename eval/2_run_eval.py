@@ -1,6 +1,7 @@
 import httpx
 from langfuse import get_client, Evaluation
 import random
+import time
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -8,15 +9,17 @@ client = get_client()
 
 # 要评估的功能接口
 async def task(*, item, **_):
-    url = "http://127.0.0.1:8000/submit"
-    data = {"user_input": item.input["user_input"]}
+    url = "http://127.0.0.1:8000/chat"
+    data = {"message": item.input["user_input"]}
+    start_time = time.time()
     async with httpx.AsyncClient() as client:
         response = await client.post(url, json=data)
-        return response.json()
+    end_time = time.time()
+    return {"output": response.json(), "time": end_time - start_time}
 
 # 回复正确性评估
 async def evaluator_1(*, input, output, expected_output, **kwargs):
-    if output == expected_output["expected_output"]:
+    if output["output"]['reply'] == expected_output["expected_output"]:
         return Evaluation(name="回复正确性", value=1)
     else:
         return Evaluation(name="回复正确性", value=0)
@@ -24,27 +27,26 @@ async def evaluator_1(*, input, output, expected_output, **kwargs):
 # 模拟多个时间点评估
 async def evaluator_2(*, input, output, expected_output, **kwargs):
     time_1 = random.random()
-    time_2 = random.random()
     return [
-        Evaluation(name="回复时间-1", value=time_1),
-        Evaluation(name="回复时间-2", value=time_2),
+        Evaluation(name="回复时间", value=output["time"]),
+        Evaluation(name="回复时间-fake", value=time_1),
     ]
 
 # 整体评估
 async def overall_evaluator(*, item_results, **kwargs):
-    time_1_list = [
+    time_list = [
         eval.value for result in item_results
-        for eval in result.evaluations if eval.name == "回复时间-1"
+        for eval in result.evaluations if eval.name == "回复时间"
     ]
-    time_2_list = [
+    time_fake_list = [
         eval.value for result in item_results
-        for eval in result.evaluations if eval.name == "回复时间-2"
+        for eval in result.evaluations if eval.name == "回复时间-fake"
     ]
-    time_1_max = max(time_1_list)
-    time_2_max = max(time_2_list)
+    time_max = max(time_list)
+    time_fake_max = max(time_fake_list)
     return [
-        Evaluation(name="回复时间-1最大值", value=time_1_max),
-        Evaluation(name="回复时间-2最大值", value=time_2_max),
+        Evaluation(name="回复时间最大值", value=time_max),
+        Evaluation(name="回复时间-fake最大值", value=time_fake_max),
     ]
 
 def main():
