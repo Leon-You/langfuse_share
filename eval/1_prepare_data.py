@@ -14,7 +14,7 @@ data = [
 
 def prepare_data():
 
-    dataset_name = "聊天机器人测试集"
+    dataset_name = "聊天机器人测试集-2"
     # 创建数据集
     client.create_dataset(
         name=dataset_name,
